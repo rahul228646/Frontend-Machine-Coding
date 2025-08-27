@@ -28,14 +28,28 @@ const Pagination = () => {
   const noOfPages = Math.ceil(products.length / pageSize);
   const start = currentPage * pageSize;
   const end = pageSize + start;
-  const fetchData = async () => {
-    const data = await fetch("https://dummyjson.com/products?limit=500");
-    const response = await data.json();
-    setProducts(response.products);
+  const fetchData = async (controller) => {
+    try {
+      const data = await fetch("https://dummyjson.com/products?limit=500", {
+        signal: controller.signal,
+      });
+      const response = await data.json();
+      setProducts(response.products);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Fetch aborted");
+      } else {
+        console.error("Fetch error:", error);
+      }
+    }
   };
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller);
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   return (
