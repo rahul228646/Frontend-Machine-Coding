@@ -76,6 +76,7 @@ const NestedCheckBox = () => {
       return updateList(prev);
     });
   };
+  
   return <List data={nestedData} onCheckBoxClick={onCheckBoxClick} />;
 };
 

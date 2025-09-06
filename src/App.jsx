@@ -10,6 +10,7 @@ import Pagination from "./Pagination/Pagination";
 import AutoComplete from "./AutoComplete/AutoComplete";
 import ProgressBar from "./ProgressBar/ProgressBar";
 import TodoList from "./TodoList/TodoList";
+import Forms2 from "./Forms2/Forms2";
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
       {/* <NestedCheckBox /> */}
       {/* <Pagination /> */}
       {/* <Forms /> */}
-      <Pagination />
+      {/* <Pagination /> */}
+      <Forms2 />
     </>
   );
 }
