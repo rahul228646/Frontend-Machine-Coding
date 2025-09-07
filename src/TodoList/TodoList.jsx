@@ -16,7 +16,7 @@ const TodoList = () => {
   const addToList = (value) => {
     setList((prev) => [
       ...prev,
-      { id: Date.now(), name: value, completed: false },
+      { id: crypto.randomUUID(), name: value, completed: false },
     ]);
     setInput("");
   };

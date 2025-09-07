@@ -12,10 +12,10 @@ const ProgressBar = (startPercentage = 50) => {
           return 100;
         }
       });
-      return () => {
-        clearInterval(intervalId);
-      };
     }, 100);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   return (

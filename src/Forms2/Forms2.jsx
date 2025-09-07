@@ -22,25 +22,36 @@ const formSchema = {
     displayName: "Phone Number",
     type: "array",
     value: [],
+    rules: [{ type: "required", error: "at least one phone is required" }],
   },
   address: {
     displayName: "Address",
     type: "object",
     properties: {
-      city: { displayName: "City", type: "string" },
+      city: {
+        displayName: "City",
+        type: "string",
+        rules: [{ type: "required", error: "city is required" }],
+      },
       state: { displayName: "State", type: "string" },
     },
   },
   sibblings: {
     displayName: "Siblings",
     type: "objectArray",
+    rules: [{ type: "required", error: "at least one sibling is required" }],
     properties: {
-      name: { displayName: "Name", type: "string" },
+      name: {
+        displayName: "Name",
+        type: "string",
+        rules: [{ type: "required", error: "sibling name is required" }],
+      },
       age: { displayName: "Age", type: "string" },
     },
   },
 };
 
+// ✅ setDeep
 function setDeep(obj, path, value) {
   const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".");
   const newObj = { ...obj };
@@ -61,9 +72,69 @@ function setDeep(obj, path, value) {
   return newObj;
 }
 
-const renderForm = (schema, values, handleChange, parentKey = "") => {
+// ✅ validate one field
+function validateField(field, value) {
+  if (!field.rules) return null;
+
+  for (let rule of field.rules) {
+    if (rule.type === "required") {
+      if (
+        value === "" ||
+        value === null ||
+        value === undefined ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
+        return rule.error;
+      }
+    }
+    if (rule.type === "regex" && value) {
+      const regex = new RegExp(rule.regex);
+      if (!regex.test(value)) {
+        return rule.error;
+      }
+    }
+  }
+  return null;
+}
+
+// ✅ validate all fields (recursively)
+function validateAll(schema, values, parentKey = "", errors = {}) {
+  Object.entries(schema).forEach(([key, field]) => {
+    const fullKey = parentKey ? `${parentKey}.${key}` : key;
+    const value = values?.[key];
+
+    switch (field.type) {
+      case "string":
+      case "array":
+        errors[fullKey] = validateField(field, value);
+        break;
+
+      case "object":
+        validateAll(field.properties, value || {}, fullKey, errors);
+        break;
+
+      case "objectArray":
+        (value || []).forEach((item, index) => {
+          validateAll(field.properties, item, `${fullKey}[${index}]`, errors);
+        });
+        if (field.rules) {
+          errors[fullKey] = validateField(field, value);
+        }
+        break;
+
+      default:
+        break;
+    }
+  });
+
+  return errors;
+}
+
+// ✅ renderer
+const renderForm = (schema, values, handleChange, errors, parentKey = "") => {
   return Object.entries(schema).map(([key, field]) => {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
+    const error = errors[fullKey];
 
     switch (field.type) {
       case "string":
@@ -73,8 +144,9 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
             <input
               name={fullKey}
               value={values?.[key] || ""}
-              onChange={(e) => handleChange(fullKey, e.target.value)}
+              onChange={(e) => handleChange(fullKey, e.target.value, field)}
             />
+            {error && <div style={{ color: "red" }}>{error}</div>}
           </React.Fragment>
         );
 
@@ -87,16 +159,19 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
                 key={`${fullKey}[${index}]`}
                 value={item}
                 onChange={(e) =>
-                  handleChange(`${fullKey}[${index}]`, e.target.value)
+                  handleChange(`${fullKey}[${index}]`, e.target.value, field)
                 }
               />
             ))}
             <button
               type="button"
-              onClick={() => handleChange(fullKey, [...(values?.[key] || []), ""])}
+              onClick={() =>
+                handleChange(fullKey, [...(values?.[key] || []), ""], field)
+              }
             >
               Add
             </button>
+            {error && <div style={{ color: "red" }}>{error}</div>}
           </React.Fragment>
         );
 
@@ -107,7 +182,13 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
               {field.displayName}
             </div>
             <div style={{ paddingLeft: "20px" }}>
-              {renderForm(field.properties, values?.[key] || {}, handleChange, fullKey)}
+              {renderForm(
+                field.properties,
+                values?.[key] || {},
+                handleChange,
+                errors,
+                fullKey
+              )}
             </div>
           </React.Fragment>
         );
@@ -132,6 +213,7 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
                     field.properties,
                     item,
                     handleChange,
+                    errors,
                     `${fullKey}[${index}]`
                   )}
                   <button
@@ -139,7 +221,7 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
                     onClick={() => {
                       const newArr = [...(values?.[key] || [])];
                       newArr.splice(index, 1);
-                      handleChange(fullKey, newArr);
+                      handleChange(fullKey, newArr, field);
                     }}
                   >
                     Remove
@@ -152,11 +234,16 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
                   const newItem = Object.fromEntries(
                     Object.keys(field.properties).map((k) => [k, ""])
                   );
-                  handleChange(fullKey, [...(values?.[key] || []), newItem]);
+                  handleChange(
+                    fullKey,
+                    [...(values?.[key] || []), newItem],
+                    field
+                  );
                 }}
               >
                 Add {field.displayName}
               </button>
+              {error && <div style={{ color: "red" }}>{error}</div>}
             </div>
           </React.Fragment>
         );
@@ -167,18 +254,40 @@ const renderForm = (schema, values, handleChange, parentKey = "") => {
   });
 };
 
+// ✅ Main
 const Forms2 = () => {
   const [valueObject, setValueObject] = useState({});
+  const [errors, setErrors] = useState({});
 
-  const handleChange = (path, value) => {
+  const handleChange = (path, value, field) => {
     setValueObject((prev) => setDeep(prev, path, value));
+    if (field) {
+      const error = validateField(field, value);
+      setErrors((prev) => ({ ...prev, [path]: error }));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const allErrors = validateAll(formSchema, valueObject);
+    setErrors(allErrors);
+
+    const hasErrors = Object.values(allErrors).some((err) => err !== null);
+    if (!hasErrors) {
+      alert("Form submitted successfully!");
+      console.log("Final Values:", valueObject);
+    }
   };
 
   return (
-    <div>
-      {renderForm(formSchema, valueObject, handleChange)}
+    <form onSubmit={handleSubmit}>
+      {renderForm(formSchema, valueObject, handleChange, errors)}
+      <button type="submit" style={{ marginTop: "20px" }}>
+        Submit
+      </button>
       <pre>{JSON.stringify(valueObject, null, 2)}</pre>
-    </div>
+      <pre>{JSON.stringify(errors, null, 2)}</pre>
+    </form>
   );
 };
 
