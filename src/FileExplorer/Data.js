@@ -1,22 +1,22 @@
 export const fileData = [
   {
-    id: 1,
+    id: crypto.randomUUID(),
     name: "Explorer",
     isFolder: true,
     children: [
       {
-        id: 2,
+        id: crypto.randomUUID(),
         name: "public",
         isFolder: true,
         children: [
           {
-            id: 3,
+            id: crypto.randomUUID(),
             name: "hello.js",
             isFolder: false,
             children: [],
           },
           {
-            id: 4,
+            id: crypto.randomUUID(),
             name: "hi.js",
             isFolder: false,
             children: [],
@@ -24,14 +24,14 @@ export const fileData = [
         ],
       },
       {
-        id: 5,
+        id: crypto.randomUUID(),
         name: "src",
         isFolder: true,
         children: [],
       },
 
       {
-        id: 6,
+        id: crypto.randomUUID(),
         name: "package.js",
         isFolder: false,
         children: [],

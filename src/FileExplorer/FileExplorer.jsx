@@ -75,32 +75,30 @@ const FileComponent = ({
   );
 };
 
-const List = ({ list, parent = "", addFile, deleteFile }) => {
+const List = ({ list, addFile, deleteFile }) => {
   const [isExpanded, setIsExpanded] = useState({});
   return (
     <>
       {list.map((item) => {
-        const itemId = parent + "." + item.name;
         return (
-          <div key={itemId} style={{ paddingLeft: "15px" }}>
+          <div key={item.id} style={{ paddingLeft: "15px" }}>
             <FileComponent
               file={item}
-              isExpanded={isExpanded[itemId]}
+              isExpanded={isExpanded[item.id]}
               setExpanded={(val = null) =>
                 setIsExpanded((prev) => {
                   return {
                     ...prev,
-                    [itemId]: val != null ? val : !prev[itemId],
+                    [item.id]: val != null ? val : !prev[item.id],
                   };
                 })
               }
               deleteFile={(id) => deleteFile(id)}
               addFile={(id, name) => addFile(id, name)}
             />
-            {isExpanded[itemId] && (
+            {isExpanded[item.id] && (
               <List
                 list={item.children}
-                parent={item.name}
                 addFile={addFile}
                 deleteFile={deleteFile}
               />
@@ -124,7 +122,7 @@ const FileExplorer = () => {
             children: [
               ...(item.children ? item.children : []),
               {
-                id: Date.now(),
+                id: crypto.randomUUID(),
                 name: name,
                 isFolder: true,
                 children: [],

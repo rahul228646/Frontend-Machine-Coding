@@ -1,5 +1,4 @@
 import "./App.css";
-
 import FileExplorer from "./FileExplorer/FileExplorer";
 import FileExplorerOptimized from "./FileExplorer/FileExplorerOptimized";
 import Forms from "./Forms/Forms";
@@ -16,7 +15,8 @@ import FormTest from "./Forms2/FormTest";
 function App() {
   return (
     <>
-      {/* <FileExplorer />
+      <FileExplorer />
+      {/* 
       <FileExplorerOptimized /> */}
       {/* <ProgressBar /> */}
       {/* <Otp /> */}
@@ -28,7 +28,7 @@ function App() {
       {/* <Forms /> */}
       {/* <Pagination /> */}
       {/* <Forms2 /> */}
-      <FormTest/>
+      {/* <FormTest /> */}
     </>
   );
 }
