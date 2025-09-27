@@ -11,11 +11,12 @@ import ProgressBar from "./ProgressBar/ProgressBar";
 import TodoList from "./TodoList/TodoList";
 import Forms2 from "./Forms2/Forms2";
 import FormTest from "./Forms2/FormTest";
+import OrderBook from "./OrderBook/OrderBook";
 
 function App() {
   return (
     <>
-      <FileExplorer />
+      {/* <FileExplorer /> */}
       {/* 
       <FileExplorerOptimized /> */}
       {/* <ProgressBar /> */}
@@ -29,6 +30,7 @@ function App() {
       {/* <Pagination /> */}
       {/* <Forms2 /> */}
       {/* <FormTest /> */}
+      <OrderBook />
     </>
   );
 }
